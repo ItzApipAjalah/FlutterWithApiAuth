@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -7,23 +9,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String _email = '';
+  List<Map<String, dynamic>> _bukus = [];
 
   @override
   void initState() {
-    _getEmail();
+    _getListBuku();
     super.initState();
   }
 
-  Future<void> _getEmail() async {
+  Future<void> _getListBuku() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _email = prefs.getString('email') ?? '';
-    });
+    String token = prefs.getString('token') ?? '';
+
+    if (token.isEmpty) {
+      // Jika tidak ada token, maka tampilkan pesan atau lakukan tindakan lainnya
+      return;
+    }
+
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/auth/listbuku'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        _bukus = List<Map<String, dynamic>>.from(data['bukus']);
+      });
+    } else {
+      // Handle error response
+    }
   }
 
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
     await prefs.remove('email');
     await prefs.remove('password');
     Navigator.pushReplacementNamed(context, '/');
@@ -39,10 +59,22 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Email: $_email',
-              style: TextStyle(fontSize: 18.0),
-            ),
+            if (_bukus.isNotEmpty)
+              Column(
+                children: _bukus.map((buku) {
+                  return Column(
+                    children: [
+                      Text('Judul: ${buku['judul']}'),
+                      Text('Penerbit: ${buku['penerbit']}'),
+                      Text('Pengarang: ${buku['pengarang']}'),
+                      Text('Stok Buku: ${buku['stok_buku']}'),
+                      Divider(),
+                    ],
+                  );
+                }).toList(),
+              )
+            else
+              Text('No Books Available'),
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: _logout,

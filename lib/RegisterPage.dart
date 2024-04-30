@@ -14,9 +14,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _register() async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/auth/register'),
+      Uri.parse('http://10.0.2.2:8000/api/auth/register'),
       body: {
         'nama': nameController.text,
+        'kelas': 'costumer',
         'email': emailController.text,
         'password': passwordController.text,
       },

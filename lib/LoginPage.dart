@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/api/auth/login'),
+      Uri.parse('http://10.0.2.2:8000/api/auth/login'),
       body: {
         'email': emailController.text,
         'password': passwordController.text,
@@ -40,9 +40,14 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      String token = data['token'];
+
       SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
       await prefs.setString('email', emailController.text);
       await prefs.setString('password', passwordController.text);
+
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       final data = jsonDecode(response.body);
@@ -60,6 +65,10 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+  }
+
+  void _goToRegisterPage() {
+    Navigator.pushReplacementNamed(context, '/register');
   }
 
   @override
@@ -86,6 +95,11 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: _login,
               child: Text('Login'),
+            ),
+            SizedBox(height: 8.0),
+            TextButton(
+              onPressed: _goToRegisterPage,
+              child: Text('Don\'t have an account? Register here.'),
             ),
           ],
         ),

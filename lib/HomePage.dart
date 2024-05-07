@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/auth/listbuku'),
+      Uri.parse('http://127.0.0.1:8000/api/auth/listbuku'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -55,32 +55,39 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_bukus.isNotEmpty)
-              Column(
-                children: _bukus.map((buku) {
-                  return Column(
-                    children: [
-                      Text('Judul: ${buku['judul']}'),
-                      Text('Penerbit: ${buku['penerbit']}'),
-                      Text('Pengarang: ${buku['pengarang']}'),
-                      Text('Stok Buku: ${buku['stok_buku']}'),
-                      Divider(),
-                    ],
-                  );
-                }).toList(),
-              )
-            else
-              Text('No Books Available'),
-            SizedBox(height: 20.0),
-            ElevatedButton(
-              onPressed: _logout,
-              child: Text('Logout'),
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (_bukus.isNotEmpty)
+                Column(
+                  children: _bukus.map((buku) {
+                    return Column(
+                      children: [
+                        Image.network(
+                          'http://127.0.0.1:8000/storage/${buku['thumbnail']}',
+                          height: 100,
+                          width: 100,
+                        ),
+                        Text('Judul: ${buku['judul']}'),
+                        Text('Penerbit: ${buku['penerbit']}'),
+                        Text('Pengarang: ${buku['pengarang']}'),
+                        Text('Stok Buku: ${buku['stok_buku']}'),
+                        Divider(),
+                      ],
+                    );
+                  }).toList(),
+                )
+              else
+                Text('No Books Available'),
+              SizedBox(height: 20.0),
+              ElevatedButton(
+                onPressed: _logout,
+                child: Text('Logout'),
+              ),
+            ],
+          ),
         ),
       ),
     );
